@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6452a1;
+  --color-primary-dark: #4d3a80;
+  --color-secondary: #e5ae53;
+  --color-tertiary: #6abf8e;
+  --color-button: #000;
+}
+
+* {
+  font-family: "Raleway", serif;
+}
+
+.test-border {
+  border: 5px solid red;
+}
