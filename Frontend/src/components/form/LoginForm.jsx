@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // استيراد Axios
+import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -14,7 +14,7 @@ const LoginForm = ({ onSignUp }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); // مسح أي أخطاء سابقة
+    setError("");
 
     try {
       const response = await axios.post("http://localhost:5000/login", {
@@ -22,16 +22,14 @@ const LoginForm = ({ onSignUp }) => {
         password,
       });
 
-      // استخراج بيانات المستخدم من الاستجابة
       const user = response.data.user;
 
-      // تخزين بيانات المستخدم في localStorage
+      // Store user data in localStorage (excluding password)
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-      // توجيه المستخدم إلى صفحة الحساب
+      // Redirect to account page
       navigate("/account");
     } catch (err) {
-      // عرض رسالة خطأ في حالة فشل تسجيل الدخول
       setError(err.response?.data?.message || "Login failed!");
     }
   };
@@ -44,7 +42,7 @@ const LoginForm = ({ onSignUp }) => {
 
       <form onSubmit={handleLogin} className="mt-8 mb-0 max-w-md space-y-4">
         {error && <p className="text-red-500">{error}</p>}
-        
+
         <div>
           <input
             type="email"
