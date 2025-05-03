@@ -6,9 +6,11 @@ const mysql = require("mysql2");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Database connection
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -18,7 +20,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("Error connecting to database:", err);
+    console.error("Error connecting to the database:", err);
     return;
   }
   console.log("Connected to MySQL Database");
@@ -28,14 +30,16 @@ db.on("error", (err) => {
   console.error("Database error:", err);
 });
 
+// Routes
 app.get("/", (req, res) => {
   res.send("Server is running...");
 });
 
+//Register
 app.post("/register", (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, birthdate } = req.body;
 
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !email || !password || !birthdate) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -49,10 +53,11 @@ app.post("/register", (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const sql = "INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)";
-    db.query(sql, [firstName, lastName, email, password], (err, result) => {
+    const insertUserSql =
+      "INSERT INTO users (firstName, lastName, email, password, birthdate) VALUES (?, ?, ?, ?, ?)";
+    db.query(insertUserSql, [firstName, lastName, email, password, birthdate], (err, result) => {
       if (err) {
-        return res.status(500).json({ message: "Server error" + err });
+        return res.status(500).json({ message: "Server error: " + err });
       }
       res.status(201).json({ message: "User registered successfully", userId: result.insertId });
     });
@@ -66,8 +71,8 @@ app.post("/login", (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
-  db.query(sql, [email, password], (err, result) => {
+  const loginSql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  db.query(loginSql, [email, password], (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Server error" });
     }
@@ -77,6 +82,25 @@ app.post("/login", (req, res) => {
     }
 
     res.status(200).json({ message: "Login successful", user: result[0] });
+  });
+});
+
+//Get user by ID
+app.get("/users/:id", (req, res) => {
+  const userId = req.params.id;
+
+  const sql = "SELECT * FROM users WHERE id = ?";
+  db.query(sql, [userId], (err, result) => {
+    if (err) {
+      console.error("Error fetching user:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(result[0]);
   });
 });
 

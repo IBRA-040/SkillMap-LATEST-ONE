@@ -9,6 +9,7 @@ const RegisterForm = ({ onLogin }) => {
     email: "",
     password: "",
     password_confirmation: "",
+    birthdate: "",
     marketing_accept: false,
   });
 
@@ -39,10 +40,10 @@ const RegisterForm = ({ onLogin }) => {
         lastName: formData.last_name,
         email: formData.email,
         password: formData.password,
+        birthdate: formData.birthdate,
       });
 
       console.log("Response Data:", response.data);
-
       setSuccessMessage("Registration successful!");
 
       setFormData({
@@ -51,11 +52,11 @@ const RegisterForm = ({ onLogin }) => {
         email: "",
         password: "",
         password_confirmation: "",
+        birthdate: "",
         marketing_accept: false,
       });
     } catch (err) {
       console.error("Error Response:", err.response?.data);
-
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     }
   };
@@ -68,6 +69,7 @@ const RegisterForm = ({ onLogin }) => {
       {successMessage && <p className="text-green-600 mt-2">{successMessage}</p>}
 
       <form onSubmit={handleSubmit} className="mt-8 grid grid-cols-6 gap-6">
+        {/* First Name */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="FirstName" className="block text-sm font-medium text-gray-700">
             First Name
@@ -79,10 +81,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.first_name}
             onChange={handleChange}
             required
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 shadow-md focus:outline-none"
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
           />
         </div>
 
+        {/* Last Name */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="LastName" className="block text-sm font-medium text-gray-700">
             Last Name
@@ -94,10 +97,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.last_name}
             onChange={handleChange}
             required
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 shadow-md focus:outline-none"
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
           />
         </div>
 
+        {/* Email */}
         <div className="col-span-6">
           <label htmlFor="Email" className="block text-sm font-medium text-gray-700">
             Email
@@ -109,10 +113,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 shadow-md focus:outline-none"
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
           />
         </div>
 
+        {/* Password */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="Password" className="block text-sm font-medium text-gray-700">
             Password
@@ -124,10 +129,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 shadow-md focus:outline-none"
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
           />
         </div>
 
+        {/* Password Confirmation */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="PasswordConfirmation" className="block text-sm font-medium text-gray-700">
             Password Confirmation
@@ -139,9 +145,27 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.password_confirmation}
             onChange={handleChange}
             required
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 shadow-md focus:outline-none"
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
           />
         </div>
+
+        {/* Birthdate */}
+        <div className="col-span-6">
+          <label htmlFor="Birthdate" className="block text-sm font-medium text-gray-700">
+            Birthdate
+          </label>
+          <input
+            type="date"
+            id="Birthdate"
+            name="birthdate"
+            value={formData.birthdate}
+            onChange={handleChange}
+            required
+            className="w-2/5 border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none cursor-pointer"
+          />
+        </div>
+
+        {/* Terms */}
         <div className="col-span-6">
           <p className="text-sm text-gray-500">
             By creating an account, you agree to our
@@ -156,6 +180,7 @@ const RegisterForm = ({ onLogin }) => {
           </p>
         </div>
 
+        {/* Submit */}
         <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
           <button
             type="submit"
@@ -163,7 +188,6 @@ const RegisterForm = ({ onLogin }) => {
           >
             Create an account
           </button>
-
           <p className="mt-4 text-sm text-gray-500 sm:mt-0">
             Already have an account?
             <button type="button" onClick={onLogin} className="ms-2 underline cursor-pointer">

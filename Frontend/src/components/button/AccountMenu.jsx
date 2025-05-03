@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button, Menu, MenuItem, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const AccountMenu = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,8 +47,10 @@ const AccountMenu = () => {
           horizontal: "right",
         }}
       >
-        <MenuItem onClick={handleClose}>Profile</MenuItem>
-        <MenuItem onClick={handleClose}>My account</MenuItem>
+        <MenuItem component={Link} to="/profile" onClick={handleClose}>
+          My Profile
+        </MenuItem>
+
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>
     </div>
