@@ -1,7 +1,6 @@
-// src/Data/Api.js
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000"; // Your backend URL
+const API_BASE_URL = "http://localhost:5000/api";
 
 export const registerUser = async (userData) => {
   try {
@@ -24,18 +23,11 @@ export const getUserById = async (userId) => {
 };
 
 export const updateUserById = async (id, updatedData) => {
-  const response = await fetch(`http://localhost:5000/users/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updatedData),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to update user");
+  try {
+    const response = await axios.put(`${API_BASE_URL}/users/${id}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error("Update User Error:", error.response?.data || error.message);
+    throw error;
   }
-
-  return response.json();
 };

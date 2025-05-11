@@ -10,27 +10,34 @@ const LoginForm = ({ onSignUp }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/login", {
+      const response = await axios.post("http://localhost:5000/api/users/login", {
         email,
         password,
       });
 
+      console.log("Login response:", response.data);
+
       const user = response.data.user;
 
-      // Store user data in localStorage (excluding password)
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-      // Redirect to account page
       navigate("/account");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed!");
+      console.error("Login error:", err.response?.data || err);
+      setError(
+        err.response?.data?.message || "Login failed. Please check your credentials and try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,10 +55,11 @@ const LoginForm = ({ onSignUp }) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
             placeholder="Enter email"
             required
             autoComplete="email"
+            disabled={isLoading}
           />
         </div>
 
@@ -60,14 +68,15 @@ const LoginForm = ({ onSignUp }) => {
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
             placeholder="Enter password"
             required
             autoComplete="current-password"
+            disabled={isLoading}
           />
           <span
             className="absolute inset-y-0 end-0 grid place-content-center px-6 cursor-pointer"
-            onClick={() => setShowPassword((prev) => !prev)}
+            onClick={() => !isLoading && setShowPassword((prev) => !prev)}
           >
             {showPassword ? (
               <FontAwesomeIcon icon={faEyeSlash} className="text-gray-400 size-4" />
@@ -80,16 +89,22 @@ const LoginForm = ({ onSignUp }) => {
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">
             No account?
-            <button type="button" onClick={onSignUp} className="underline ms-2 cursor-pointer">
+            <button
+              type="button"
+              onClick={onSignUp}
+              className="underline ms-2 cursor-pointer"
+              disabled={isLoading}
+            >
               Sign up
             </button>
           </p>
 
           <button
             type="submit"
-            className="inline-block shrink-0 rounded-md border border-primary bg-primary px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-primary cursor-pointer"
+            className="inline-block shrink-0 rounded-md border border-primary bg-primary px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Sign in
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </div>
       </form>

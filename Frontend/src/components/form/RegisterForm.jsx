@@ -16,6 +16,7 @@ const RegisterForm = ({ onLogin }) => {
 
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,14 +30,18 @@ const RegisterForm = ({ onLogin }) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage("");
+    setIsLoading(true);
 
     if (formData.password !== formData.password_confirmation) {
       setError("Passwords do not match!");
+      setIsLoading(false);
       return;
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/register", {
+      console.log("Attempting registration with email:", formData.email);
+
+      const response = await axios.post("http://localhost:5000/api/users/register", {
         firstName: formData.first_name,
         lastName: formData.last_name,
         email: formData.email,
@@ -44,8 +49,8 @@ const RegisterForm = ({ onLogin }) => {
         birthdate: formData.birthdate,
       });
 
-      console.log("Response Data:", response.data);
-      setSuccessMessage("Registration successful!");
+      console.log("Registration Response:", response.data);
+      setSuccessMessage("Registration successful! Redirecting to login...");
 
       // Trigger confetti on successful registration
       confetti({
@@ -63,9 +68,16 @@ const RegisterForm = ({ onLogin }) => {
         birthdate: "",
         marketing_accept: false,
       });
+
+      // Switch to login form after successful registration
+      setTimeout(() => {
+        onLogin();
+      }, 2000);
     } catch (err) {
-      console.error("Error Response:", err.response?.data);
+      console.error("Registration Error:", err.response?.data);
       setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,7 +89,6 @@ const RegisterForm = ({ onLogin }) => {
       {successMessage && <p className="text-green-600 mt-2">{successMessage}</p>}
 
       <form onSubmit={handleSubmit} className="mt-8 grid grid-cols-6 gap-6">
-        {/* First Name */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="FirstName" className="block text-sm font-medium text-gray-700">
             First Name
@@ -89,11 +100,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.first_name}
             onChange={handleChange}
             required
-            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            disabled={isLoading}
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        {/* Last Name */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="LastName" className="block text-sm font-medium text-gray-700">
             Last Name
@@ -105,11 +116,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.last_name}
             onChange={handleChange}
             required
-            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            disabled={isLoading}
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        {/* Email */}
         <div className="col-span-6">
           <label htmlFor="Email" className="block text-sm font-medium text-gray-700">
             Email
@@ -121,11 +132,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            disabled={isLoading}
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        {/* Password */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="Password" className="block text-sm font-medium text-gray-700">
             Password
@@ -137,11 +148,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            disabled={isLoading}
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        {/* Password Confirmation */}
         <div className="col-span-6 sm:col-span-3">
           <label htmlFor="PasswordConfirmation" className="block text-sm font-medium text-gray-700">
             Password Confirmation
@@ -153,11 +164,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.password_confirmation}
             onChange={handleChange}
             required
-            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none"
+            disabled={isLoading}
+            className="w-full border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        {/* Birthdate */}
         <div className="col-span-6">
           <label htmlFor="Birthdate" className="block text-sm font-medium text-gray-700">
             Birthdate
@@ -169,11 +180,11 @@ const RegisterForm = ({ onLogin }) => {
             value={formData.birthdate}
             onChange={handleChange}
             required
-            className="w-2/5 border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none cursor-pointer"
+            disabled={isLoading}
+            className="w-2/5 border-2 h-10 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none cursor-pointer disabled:opacity-50"
           />
         </div>
 
-        {/* Terms */}
         <div className="col-span-6">
           <p className="text-sm text-gray-500">
             By creating an account, you agree to our
@@ -188,17 +199,22 @@ const RegisterForm = ({ onLogin }) => {
           </p>
         </div>
 
-        {/* Submit */}
         <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
           <button
             type="submit"
-            className="inline-block shrink-0 rounded-md border border-secondary bg-secondary px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-secondary cursor-pointer"
+            disabled={isLoading}
+            className="inline-block shrink-0 rounded-md border border-secondary bg-secondary px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create an account
+            {isLoading ? "Creating account..." : "Create an account"}
           </button>
           <p className="mt-4 text-sm text-gray-500 sm:mt-0">
             Already have an account?
-            <button type="button" onClick={onLogin} className="ms-2 underline cursor-pointer">
+            <button
+              type="button"
+              onClick={onLogin}
+              className="ms-2 underline cursor-pointer"
+              disabled={isLoading}
+            >
               Log in
             </button>
             .

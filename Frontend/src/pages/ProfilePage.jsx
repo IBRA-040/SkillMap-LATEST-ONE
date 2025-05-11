@@ -93,7 +93,6 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-primary px-6 py-4">
         <div className="flex items-center gap-3">
           <Link to="/account" className="text-white hover:text-gray-200 transition-colors">
@@ -104,9 +103,7 @@ const ProfilePage = () => {
       </div>
 
       <div className="px-10 py-10">
-        {/* User Information */}
         <div className="space-y-4">
-          {/* Full Name */}
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faUser} className="text-primary text-xl" />
             <div>
@@ -141,7 +138,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Email Address */}
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faEnvelope} className="text-primary text-xl" />
             <div>
@@ -160,7 +156,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Date of Birth */}
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faCalendarAlt} className="text-primary text-xl" />
             <div>
@@ -186,7 +181,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Edit / Save / Cancel Button */}
         <div className="flex gap-2 my-4">
           {isEditing ? (
             <>
