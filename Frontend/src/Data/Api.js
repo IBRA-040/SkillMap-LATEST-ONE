@@ -22,3 +22,20 @@ export const getUserById = async (userId) => {
     throw error;
   }
 };
+
+export const updateUserById = async (id, updatedData) => {
+  const response = await fetch(`http://localhost:5000/users/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to update user");
+  }
+
+  return response.json();
+};

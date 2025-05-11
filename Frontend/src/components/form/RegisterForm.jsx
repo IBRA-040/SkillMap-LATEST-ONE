@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
+import confetti from "canvas-confetti";
 
 const RegisterForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -45,6 +46,13 @@ const RegisterForm = ({ onLogin }) => {
 
       console.log("Response Data:", response.data);
       setSuccessMessage("Registration successful!");
+
+      // Trigger confetti on successful registration
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
 
       setFormData({
         first_name: "",

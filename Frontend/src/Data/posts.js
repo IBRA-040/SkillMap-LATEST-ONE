@@ -15,6 +15,7 @@ import logodesignimg from "../assets/Images/logo design.jpeg";
 import graphicdesignimg from "../assets/Images/graphic design.jpeg";
 import brandimg from "../assets/Images/brand.jpeg";
 import typographyimg from "../assets/Images/typography.jpeg";
+
 const posts = [
   {
     id: 1,
