@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -16,14 +16,18 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-        if (!storedUser?.id) {
-          setError("User not logged in");
+        
+        if (!token || !storedUser?.id) {
+          setError("Please log in to view your profile");
           setLoading(false);
+          navigate("/login");
           return;
         }
 
@@ -36,14 +40,21 @@ const ProfilePage = () => {
           birthdate: user.birthdate,
         });
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch user data");
+        if (err.message.includes("401") || err.message.includes("unauthorized")) {
+          setError("Your session has expired. Please log in again.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("loggedInUser");
+          navigate("/login");
+        } else {
+          setError(err.message || "Failed to fetch user data. Please try again later.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,12 +62,20 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     try {
+      setError(null);
       const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-      await updateUserById(storedUser.id, formData);
-      setUserData({ ...userData, ...formData });
+      const updatedUser = await updateUserById(storedUser.id, formData);
+      setUserData({ ...userData, ...updatedUser });
       setIsEditing(false);
-    } catch (error) {
-      setError(error.message || "Failed to update profile");
+    } catch (err) {
+      if (err.message.includes("401") || err.message.includes("unauthorized")) {
+        setError("Your session has expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("loggedInUser");
+        navigate("/login");
+      } else {
+        setError(err.message || "Failed to update profile. Please try again later.");
+      }
     }
   };
 

@@ -1,73 +1,135 @@
 import { useParams, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useState, useEffect } from "react";
 import posts from "../Data/posts";
+
+const API_BASE_URL = "/api";
 
 const PathDetails = () => {
   const { id } = useParams();
-  const post = posts.find((p) => p.id === parseInt(id));
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!post) return <div className="p-6 text-center text-lg">Post not found.</div>;
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/career-paths`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-store",
+            Pragma: "no-cache",
+          },
+          cache: "no-store",
+        });
+
+        if (response.status === 304) {
+          throw new Error("No updated data available (304)");
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch career path");
+        }
+
+        const data = await response.json();
+        const foundPost = data.find((p) => p.id === parseInt(id));
+
+        if (!foundPost) {
+          throw new Error("Career path not found");
+        }
+
+        const matchingImagePost = posts.find((p) => p.id === parseInt(id));
+        if (matchingImagePost) {
+          foundPost.image = matchingImagePost.image;
+        }
+
+        setPost(foundPost);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id]);
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-red-50 p-6 rounded-lg shadow-md">
+          <p className="text-red-600 text-lg">{error}</p>
+        </div>
+      </div>
+    );
+
+  if (!post)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+          <p className="text-gray-600 text-lg">Post not found.</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-8 lg:px-16">
-      <div className="space-y-6">
-        <div className="flex gap-2 items-center ">
-          <Link to="/account" className="text-primary text-xl sm:text-2xl">
-            <FontAwesomeIcon icon={faArrowLeft} />
-          </Link>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary underline">
-            {post.title} Path
-          </h1>
-        </div>
+    <div className="min-h-screen">
+      <div className="mx-auto px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="p-6 sm:p-8 space-y-8">
+          {/* Header Section */}
+          <div className="flex items-center gap-4 border-b pb-4">
+            <Link
+              to="/account"
+              className="text-primary hover:text-primary/80 transition-colors duration-200"
+            >
+              <FontAwesomeIcon icon={faArrowLeft} className="text-2xl" />
+            </Link>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+              {post.title} Path
+            </h1>
+          </div>
 
-        <p className="text-gray-600 text-base sm:text-lg">{post.description}</p>
+          {/* Description */}
+          <p className="text-gray-600 text-lg leading-relaxed">{post.description}</p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-h-[600px]">
-          <div className="w-full h-full max-h-[600px] flex justify-center items-center">
-            <img
-              src={post.image}
-              alt={post.title}
-              className="w-full h-full object-contain rounded"
-            />
-          </div>
-          <div
-            className={`grid gap-3 ${
-              post.videos.length === 1
-                ? "grid-cols-1"
-                : post.videos.length === 2
-                ? "grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1"
-            }`}
-          >
-            {post.videos.map((video, index) => (
-              <iframe
-                key={index}
-                className={`w-full ${
-                  post.videos.length === 1
-                    ? "h-[300px]"
-                    : post.videos.length === 2
-                    ? "h-[200px]"
-                    : "h-[160px]"
-                } rounded-lg`}
-                src={video}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
-            ))}
-          </div>
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="max-h-[600px]">
+              <img src={post.image} alt={post.title} className="w-full h-full object-contain" />
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base text-gray-700">
-          <div>
-            <span className="font-semibold">Offered By:</span> {post.offeredBy}
+            {/* Videos Container */}
+            <div className="grid grid-cols-1 gap-4">
+              {post.videos.map((video, index) => (
+                <div key={index} className="relative w-full aspect-video">
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full"
+                    src={video}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              ))}
+            </div>
           </div>
-          <div>
-            <span className="font-semibold">Category:</span> {post.category}
-          </div>
-          <div>
-            <span className="font-semibold">Status:</span> {post.status}
+
+          {/* Info Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-100 p-6 rounded-xl">
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-500">Offered By</span>
+              <span className="text-gray-900 font-semibold">{post.offeredBy}</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-500">Category</span>
+              <span className="text-gray-900 font-semibold">{post.category}</span>
+            </div>
           </div>
         </div>
       </div>

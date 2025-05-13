@@ -1,6 +1,5 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import axios from "axios";
 import confetti from "canvas-confetti";
 
 const RegisterForm = ({ onLogin }) => {
@@ -39,17 +38,32 @@ const RegisterForm = ({ onLogin }) => {
     }
 
     try {
-      console.log("Attempting registration with email:", formData.email);
-
-      const response = await axios.post("http://localhost:5000/api/users/register", {
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-        email: formData.email,
-        password: formData.password,
-        birthdate: formData.birthdate,
+      const response = await fetch("/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.first_name,
+          lastName: formData.last_name,
+          email: formData.email,
+          password: formData.password,
+          birthdate: formData.birthdate,
+        }),
       });
 
-      console.log("Registration Response:", response.data);
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
       setSuccessMessage("Registration successful! Redirecting to login...");
 
       // Trigger confetti on successful registration
@@ -74,8 +88,8 @@ const RegisterForm = ({ onLogin }) => {
         onLogin();
       }, 2000);
     } catch (err) {
-      console.error("Registration Error:", err.response?.data);
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      console.error("Registration Error:", err);
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -11,7 +10,7 @@ const LoginForm = ({ onSignUp }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,23 +18,10 @@ const LoginForm = ({ onSignUp }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/users/login", {
-        email,
-        password,
-      });
-
-      console.log("Login response:", response.data);
-
-      const user = response.data.user;
-
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-      navigate("/account");
+      await login(email, password);
     } catch (err) {
-      console.error("Login error:", err.response?.data || err);
-      setError(
-        err.response?.data?.message || "Login failed. Please check your credentials and try again."
-      );
+      console.error("Login error:", err);
+      setError(err.message || "Login failed. Please check your credentials and try again.");
     } finally {
       setIsLoading(false);
     }

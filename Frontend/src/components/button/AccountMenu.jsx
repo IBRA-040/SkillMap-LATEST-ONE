@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Button, Menu, MenuItem, Avatar } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Button, Menu, MenuItem } from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
 
 const AccountMenu = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const [user, setUser] = useState({ name: "Guest", avatar: "/broken-image.jpg" });
+  const [user, setUser] = useState({ firstName: "", lastName: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,9 +18,11 @@ const AccountMenu = () => {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     navigate("/");
@@ -29,9 +30,10 @@ const AccountMenu = () => {
 
   return (
     <div>
-      <Button className="flex gap-1" onClick={handleClick}>
-        <Avatar src={user.avatar || "/broken-image.jpg"} className="hidden sm:flex" />
-        <h1 className="capitalize text-primary-dark">{user.name}</h1>
+      <Button className="flex gap-1 " onClick={handleClick}>
+        <h1 className="capitalize text-primary-dark text-lg ">
+          {user.firstName} {user.lastName}
+        </h1>
       </Button>
       <Menu
         id="fade-menu"
@@ -50,7 +52,6 @@ const AccountMenu = () => {
         <MenuItem component={Link} to="/profile" onClick={handleClose}>
           My Profile
         </MenuItem>
-
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>
     </div>

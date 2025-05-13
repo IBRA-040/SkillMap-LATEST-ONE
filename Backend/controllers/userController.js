@@ -1,145 +1,225 @@
-const db = require("../config/db");
-const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const db = require('../config/db');
 const validatePassword = require("../utils/validatePassword");
 
 // Register
-exports.registerUser = (req, res) => {
-  const { firstName, lastName, email, password, birthdate } = req.body;
-
-  if (!firstName || !lastName || !email || !password || !birthdate) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  const checkEmailSql = "SELECT * FROM users WHERE email = ?";
-  db.query(checkEmailSql, [email], (err, result) => {
-    if (err) return res.status(500).json({ message: "Server error" });
-    if (result.length > 0) {
-      return res.status(400).json({ message: "Email already exists" });
+const registerUser = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, birthdate } = req.body;
+    console.log('Registration attempt:', { firstName, lastName, email, birthdate });
+    
+    if (!firstName || !lastName || !email || !password || !birthdate) {
+      console.log('Missing fields:', { firstName, lastName, email, birthdate });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      return res.status(400).json({ message: passwordError });
-    }
-
-    bcrypt.hash(password, 10, (err, hashedPassword) => {
+    // Check if email exists
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) {
-        console.error("Error hashing password:", err);
-        return res.status(500).json({ message: "Error hashing password" });
-      }
-      // Verify the hashed password is complete
-      if (hashedPassword.length < 60) {
-        console.error("Hashed password is incomplete");
-        return res.status(500).json({ message: "Error in password hashing" });
+        console.error('Database error during email check:', err);
+        return res.status(500).json({ message: 'Error checking email' });
       }
 
-      const insertUserSql = `
-        INSERT INTO users (firstName, lastName, email, password, birthdate) 
-        VALUES (?, ?, ?, ?, ?)`;
+      if (results.length > 0) {
+        console.log('Email already exists:', email);
+        return res.status(400).json({ message: "Email already exists" });
+      }
 
-      db.query(
-        insertUserSql,
-        [firstName, lastName, email, hashedPassword, birthdate],
-        (err, result) => {
-          if (err) {
-            console.error("Database error during registration:", err);
-            return res.status(500).json({ message: "Server error: " + err });
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        console.log('Password validation failed:', passwordError);
+        return res.status(400).json({ message: passwordError });
+      }
+
+      try {
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully');
+        
+        // Insert user into database
+        const insertUserSql = `
+          INSERT INTO users (firstName, lastName, email, password, birthdate) 
+          VALUES (?, ?, ?, ?, ?)`;
+        
+        db.query(
+          insertUserSql,
+          [firstName, lastName, email, hashedPassword, birthdate],
+          (err, result) => {
+            if (err) {
+              console.error('Database error during user insertion:', err);
+              return res.status(500).json({ message: 'Error registering user' });
+            }
+
+            console.log('User inserted successfully:', result.insertId);
+
+            const newUser = {
+              id: result.insertId,
+              firstName,
+              lastName,
+              email,
+              birthdate
+            };
+            
+            // Generate JWT token
+            const token = jwt.sign(
+              { 
+                id: newUser.id, 
+                username: `${newUser.firstName} ${newUser.lastName}` 
+              },
+              process.env.JWT_SECRET || 'your_secure_jwt_secret_key_here',
+              { expiresIn: '24h' }
+            );
+            
+            console.log('Registration successful for:', email);
+            res.status(201).json({
+              user: newUser,
+              token
+            });
           }
-
-          // Verify the stored password
-          const verifySql = "SELECT password FROM users WHERE id = ?";
-          db.query(verifySql, [result.insertId], (err, verifyResult) => {
-            if (err || !verifyResult[0]) {
-              console.error("Error verifying stored password:", err);
-              return res.status(500).json({ message: "Error verifying registration" });
-            }
-
-            const storedPassword = verifyResult[0].password;
-
-            if (storedPassword.length !== hashedPassword.length) {
-              console.error("Password was truncated during storage");
-              return res.status(500).json({ message: "Error in password storage" });
-            }
-
-            console.log("User registered successfully with ID:", result.insertId);
-            res
-              .status(201)
-              .json({ message: "User registered successfully", userId: result.insertId });
-          });
-        }
-      );
+        );
+      } catch (hashError) {
+        console.error('Error hashing password:', hashError);
+        return res.status(500).json({ message: 'Error processing registration' });
+      }
     });
-  });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Error registering user' });
+  }
 };
 
 // Login
-exports.loginUser = (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "All fields are required" });
-
-  const sql = "SELECT * FROM users WHERE email = ?";
-  db.query(sql, [email], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-    if (result.length === 0) {
-      console.log("No user found with email:", email);
-      return res.status(401).json({ message: "Invalid email or password" });
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = result[0];
-
-    // Verify the stored password is complete
-    if (user.password.length < 60) {
-      console.error("Stored password is incomplete");
-      return res.status(500).json({ message: "Error in stored password" });
-    }
-
-    // Compare hashed password
-    bcrypt.compare(password, user.password, (err, isMatch) => {
+    // Find user
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) {
-        console.error("Password comparison error:", err);
-        return res.status(500).json({ message: "Error comparing passwords" });
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Error logging in' });
       }
 
-      if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
-
-      // Remove password from user object before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.status(200).json({ message: "Login successful", user: userWithoutPassword });
+      const user = results[0];
+      
+      if (!user) {
+        console.log("No user found with email:", email);
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          id: user.id, 
+          username: `${user.firstName} ${user.lastName}` 
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      res.json({
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          birthdate: user.birthdate
+        },
+        token
+      });
     });
-  });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Error logging in' });
+  }
 };
 
 // Get user by ID
-exports.getUserById = (req, res) => {
-  const userId = req.params.id;
-  const sql = "SELECT * FROM users WHERE id = ?";
-  db.query(sql, [userId], (err, result) => {
-    if (err) return res.status(500).json({ message: "Server error" });
-    if (result.length === 0) return res.status(404).json({ message: "User not found" });
-
-    res.status(200).json(result[0]);
-  });
+const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    db.query(
+      'SELECT id, firstName, lastName, email, birthdate FROM users WHERE id = ?',
+      [id],
+      (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ message: 'Error fetching user' });
+        }
+        
+        if (results.length === 0) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const user = results[0];
+        res.json({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          birthdate: user.birthdate
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Error fetching user' });
+  }
 };
 
 // Update user by ID
-exports.updateUserById = (req, res) => {
-  const userId = req.params.id;
-  const { firstName, lastName, email, birthdate } = req.body;
-  if (!firstName || !lastName || !email || !birthdate) {
-    return res.status(400).json({ message: "All fields are required" });
+const updateUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, birthdate } = req.body;
+    
+    if (!firstName || !lastName || !email || !birthdate) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    db.query(
+      'UPDATE users SET firstName = ?, lastName = ?, email = ?, birthdate = ? WHERE id = ?',
+      [firstName, lastName, email, birthdate, id],
+      (err, result) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ message: 'Error updating user' });
+        }
+        
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({
+          id,
+          firstName,
+          lastName,
+          email,
+          birthdate
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ message: 'Error updating user' });
   }
+};
 
-  const sql = `
-    UPDATE users 
-    SET firstName = ?, lastName = ?, email = ?, birthdate = ? 
-    WHERE id = ?`;
-  db.query(sql, [firstName, lastName, email, birthdate, userId], (err, result) => {
-    if (err) return res.status(500).json({ message: "Server error" });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "User not found" });
-
-    res.status(200).json({ message: "User updated successfully" });
-  });
+module.exports = {
+  registerUser,
+  loginUser,
+  getUserById,
+  updateUserById
 };

@@ -1,12 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PostCard from "../card/PathCard";
-import posts from "../../Data/posts";
 import IconButton from "@mui/material/IconButton";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useAuth } from "../../context/AuthContext";
 
 const Dashboard = () => {
   const [collapsedCategories, setCollapsedCategories] = useState({});
+  const [careerPaths, setCareerPaths] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { getAuthHeader } = useAuth();
+
+  useEffect(() => {
+    const fetchCareerPaths = async () => {
+      try {
+        const response = await fetch('/api/career-paths', {
+          headers: {
+            ...getAuthHeader(),
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch career paths');
+        }
+        
+        const data = await response.json();
+        setCareerPaths(data);
+      } catch (err) {
+        console.error('Error fetching career paths:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCareerPaths();
+  }, [getAuthHeader]);
 
   const toggleCategory = (category) => {
     setCollapsedCategories((prev) => ({
@@ -15,13 +47,29 @@ const Dashboard = () => {
     }));
   };
 
-  const categorizedPosts = posts.reduce((acc, post) => {
+  const categorizedPosts = careerPaths.reduce((acc, post) => {
     if (!acc[post.category]) {
       acc[post.category] = [];
     }
     acc[post.category].push(post);
     return acc;
   }, {});
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading career paths...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 mt-10 sm:px-6 md:px-10">
