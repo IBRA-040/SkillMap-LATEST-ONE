@@ -5,7 +5,6 @@ import HomePage from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import AccountPage from "./pages/AccountPage";
 import PathDetails from "./pages/PathDetails";
-import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -26,14 +25,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <PathDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
               </ProtectedRoute>
             }
           />
