@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Updates state and navigates to /account.
   const login = async (email, password) => {
     try {
       console.log("Attempting login with:", { email });
@@ -67,6 +68,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Clears auth info and navigates back to homepage.
   const logout = () => {
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("token");
@@ -74,6 +76,7 @@ export const AuthProvider = ({ children }) => {
     navigate("/");
   };
 
+  // Returns the correct Authorization header to use in API requests.
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -90,6 +93,7 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

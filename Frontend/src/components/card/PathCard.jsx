@@ -1,5 +1,7 @@
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 const PathCard = ({ post }) => {
   return (
@@ -12,9 +14,9 @@ const PathCard = ({ post }) => {
       <div className="flex justify-end items-center p-4 px-6 gap-5 border-t-1 border-gray-200">
         <Link
           to={`/account/path/${post.id}`}
-          className="text-primary text-sm font-semibold hover:text-primary-dark transition hover:underline"
+          className="text-primary text-sm font-semibold items-center hover:text-primary-dark transition hover:underline"
         >
-          View More
+          <FontAwesomeIcon icon={faPlus} /> Upgrade
         </Link>
       </div>
     </div>

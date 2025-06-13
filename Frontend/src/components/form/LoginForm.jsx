@@ -28,72 +28,73 @@ const LoginForm = ({ onSignUp }) => {
   };
 
   return (
-    <div className="h-fit mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 shadow-lg rounded-4xl bg-white">
-      <div className="mx-auto md:w-2xl max-w-lg">
-        <h1 className="text-black text-2xl font-semibold">Log In & Level Up Your Skills</h1>
-      </div>
+    <div className="flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="w-sm sm:w-md  max-w-xl sm:max-w-2xl md:max-w-3xl bg-white shadow-lg rounded-4xl p-6 sm:p-10">
+        <h1 className="text-sm sm:text-lg md:text-xl font-semibold justify-start text-primary">
+          Log In & Level Up Your Skills
+        </h1>
 
-      <form onSubmit={handleLogin} className="mt-8 mb-0 max-w-md space-y-4">
-        {error && <p className="text-red-500">{error}</p>}
+        <form onSubmit={handleLogin} className="mt-6 space-y-6">
+          {error && <p className="text-red-500 text-start">{error}</p>}
 
-        <div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
-            placeholder="Enter email"
-            required
-            autoComplete="email"
-            disabled={isLoading}
-          />
-        </div>
+          <div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border-2 border-gray-200 rounded-xl p-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              placeholder="Enter email"
+              required
+              autoComplete="email"
+              disabled={isLoading}
+            />
+          </div>
 
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-2xl p-4 text-sm shadow-md focus:outline-none disabled:opacity-50"
-            placeholder="Enter password"
-            required
-            autoComplete="current-password"
-            disabled={isLoading}
-          />
-          <span
-            className="absolute inset-y-0 end-0 grid place-content-center px-6 cursor-pointer"
-            onClick={() => !isLoading && setShowPassword((prev) => !prev)}
-          >
-            {showPassword ? (
-              <FontAwesomeIcon icon={faEyeSlash} className="text-gray-400 size-4" />
-            ) : (
-              <FontAwesomeIcon icon={faEye} className="text-gray-400 size-4" />
-            )}
-          </span>
-        </div>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border-2 border-gray-200 rounded-xl p-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              placeholder="Enter password"
+              required
+              autoComplete="current-password"
+              disabled={isLoading}
+            />
+            <span
+              className="absolute inset-y-0 end-0 grid place-content-center px-4 cursor-pointer"
+              onClick={() => !isLoading && setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? (
+                <FontAwesomeIcon icon={faEyeSlash} className="text-gray-400 size-4" />
+              ) : (
+                <FontAwesomeIcon icon={faEye} className="text-gray-400 size-4" />
+              )}
+            </span>
+          </div>
 
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            No account?
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-500">
+              No account?
+              <button
+                type="button"
+                onClick={onSignUp}
+                className="underline ml-1 cursor-pointer hover:text-primary"
+                disabled={isLoading}
+              >
+                Sign up
+              </button>
+            </p>
             <button
-              type="button"
-              onClick={onSignUp}
-              className="underline ms-2 cursor-pointer"
+              type="submit"
+              className="w-full sm:w-auto px-8 py-3 text-sm font-medium text-white bg-primary border border-primary rounded-md hover:bg-transparent hover:text-primary transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
-              Sign up
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
-          </p>
-
-          <button
-            type="submit"
-            className="inline-block shrink-0 rounded-md border border-primary bg-primary px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Sign in"}
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -9,28 +9,28 @@ const Dashboard = () => {
   const [collapsedCategories, setCollapsedCategories] = useState({});
   const [careerPaths, setCareerPaths] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // intial value is null
   const { getAuthHeader } = useAuth();
 
   useEffect(() => {
     const fetchCareerPaths = async () => {
       try {
-        const response = await fetch('/api/career-paths', {
+        const response = await fetch("/api/career-paths", {
           headers: {
             ...getAuthHeader(),
-            'Accept': 'application/json'
-          }
+            Accept: "application/json",
+          },
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch career paths');
+          throw new Error(errorData.message || "Failed to fetch career paths");
         }
-        
+
         const data = await response.json();
         setCareerPaths(data);
       } catch (err) {
-        console.error('Error fetching career paths:', err);
+        console.error("Error fetching career paths:", err);
         setError(err.message);
       } finally {
         setLoading(false);

@@ -45,7 +45,7 @@ const Footer = () => {
           </div>
 
           <p className="mt-12 text-center text-sm text-gray-500 lg:text-right">
-            Copyright &copy; 2025. All rights reserved.
+            SkillMap&copy; 2025. All rights reserved.
           </p>
         </div>
       </footer>

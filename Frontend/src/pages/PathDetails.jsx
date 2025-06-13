@@ -90,7 +90,7 @@ const PathDetails = () => {
               to="/account"
               className="text-primary hover:text-primary/80 transition-colors duration-200"
             >
-              <FontAwesomeIcon icon={faArrowLeft} className="text-2xl" />
+              <FontAwesomeIcon icon={faArrowLeft} className="text-2xl cursor-pointer" />
             </Link>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
               {post.title} Path

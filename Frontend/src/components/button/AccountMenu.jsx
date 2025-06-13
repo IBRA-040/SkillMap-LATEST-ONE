@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { IconButton, Avatar, Popover, Typography, TextField, Button, Box } from "@mui/material";
+import { IconButton, Avatar, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { updateUserById } from "../../Data/Api";
+import ProfilePopover from "./ProfilePopover";
 
 const AccountMenu = () => {
   const [user, setUser] = useState({
@@ -12,6 +15,7 @@ const AccountMenu = () => {
   });
 
   const [formData, setFormData] = useState({});
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [error, setError] = useState("");
 
@@ -31,13 +35,26 @@ const AccountMenu = () => {
 
   const getInitials = (first, last) => `${first?.[0] || ""}${last?.[0] || ""}`.toUpperCase();
 
-  const handleOpenPopover = (event) => {
-    setPopoverAnchor(event.currentTarget);
+  const handleAvatarClick = (event) => {
+    setMenuAnchor(event.currentTarget);
   };
 
-  const handleClosePopover = () => {
-    setPopoverAnchor(null);
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
   };
+
+  const handleEditProfile = () => {
+    setPopoverAnchor(menuAnchor);
+    handleCloseMenu();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "/";
+  };
+
+  const handlePopoverClose = () => setPopoverAnchor(null);
 
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -50,7 +67,7 @@ const AccountMenu = () => {
       const cleanedUser = { ...updatedUser, birthdate: correctedDate };
       localStorage.setItem("loggedInUser", JSON.stringify(cleanedUser));
       setUser(cleanedUser);
-      handleClosePopover();
+      handlePopoverClose();
     } catch (err) {
       console.error(err);
       setError("Failed to update profile. Try again.");
@@ -58,101 +75,46 @@ const AccountMenu = () => {
   };
 
   const popoverOpen = Boolean(popoverAnchor);
+  const menuOpen = Boolean(menuAnchor);
 
   return (
-    <div className="relative z-50">
-      <IconButton onClick={handleOpenPopover}>
-        <Avatar sx={{ bgcolor: "var(--color-primary)", color: "white" }}>
+    <div>
+      <IconButton onClick={handleAvatarClick}>
+        <Avatar sx={{ bgcolor: "var(--color-secondary)", color: "white" }}>
           {getInitials(user.firstName, user.lastName)}
         </Avatar>
       </IconButton>
 
-      {popoverOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-          onClick={handleClosePopover}
-        />
-      )}
+      <Menu
+        anchorEl={menuAnchor}
+        open={menuOpen}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={handleEditProfile}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit Profile</ListItemText>
+        </MenuItem>
+        <MenuItem sx={{ color: "red" }} onClick={handleLogout}>
+          <ListItemIcon>
+            <LogoutIcon sx={{ color: "red" }} fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Logout</ListItemText>
+        </MenuItem>
+      </Menu>
 
-      <Popover
+      <ProfilePopover
         open={popoverOpen}
         anchorEl={popoverAnchor}
-        onClose={handleClosePopover}
-        anchorReference="anchorPosition"
-        anchorPosition={{
-          top: window.innerHeight / 2,
-          left: window.innerWidth / 2,
-        }}
-        transformOrigin={{
-          vertical: "center",
-          horizontal: "center",
-        }}
-        PaperProps={{
-          sx: {
-            zIndex: 50,
-            padding: 4,
-            width: 350,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          },
-        }}
-      >
-        <Typography variant="h6" textAlign="center">
-          Edit Profile
-        </Typography>
-
-        {error && (
-          <Typography color="error" fontSize={14}>
-            {error}
-          </Typography>
-        )}
-
-        <TextField
-          label="First Name"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleInputChange}
-        />
-        <TextField
-          label="Last Name"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleInputChange}
-        />
-        <TextField label="Email" name="email" value={formData.email} onChange={handleInputChange} />
-        <TextField
-          label="Birthdate"
-          name="birthdate"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={formData.birthdate}
-          onChange={handleInputChange}
-        />
-
-        <Box display="flex" gap={2} justifyContent="center" mt={2}>
-          <Button
-            onClick={handleSave}
-            sx={{
-              backgroundColor: "var(--color-primary)",
-              color: "white",
-              "&:hover": { backgroundColor: "var(--color-tertiary)" },
-            }}
-          >
-            Save
-          </Button>
-          <Button
-            onClick={handleClosePopover}
-            sx={{
-              backgroundColor: "#6c757d",
-              color: "white",
-              "&:hover": { backgroundColor: "#5a6268" },
-            }}
-          >
-            Cancel
-          </Button>
-        </Box>
-      </Popover>
+        onClose={handlePopoverClose}
+        formData={formData}
+        error={error}
+        onChange={handleInputChange}
+        onSave={handleSave}
+      />
     </div>
   );
 };
